@@ -1,0 +1,545 @@
+1. What is SQL? How is it different from MySQL or PostgreSQL?
+
+SQL (Structured Query Language) is a standard language for managing and manipulating relational databases.
+MySQL and PostgreSQL are database management systems (DBMS) that implement SQL, with PostgreSQL being more feature-rich and standards-compliant.
+
+
+---
+
+2. What are the different types of SQL statements?
+
+DDL (Data Definition Language): CREATE, ALTER, DROP, TRUNCATE
+
+DML (Data Manipulation Language): SELECT, INSERT, UPDATE, DELETE
+
+DCL (Data Control Language): GRANT, REVOKE
+
+TCL (Transaction Control Language): COMMIT, ROLLBACK, SAVEPOINT
+
+
+
+---
+
+3. Difference between WHERE and HAVING?
+
+WHERE: Filters rows before aggregation
+
+HAVING: Filters after aggregation
+
+
+SELECT department, COUNT(*) FROM employees 
+GROUP BY department 
+HAVING COUNT(*) > 5;
+
+
+---
+
+4. PRIMARY KEY, FOREIGN KEY, UNIQUE, and CHECK Constraints
+
+PRIMARY KEY: Uniquely identifies each row; cannot be NULL.
+
+FOREIGN KEY: References the primary key of another table.
+
+UNIQUE: Ensures all values in a column are unique.
+
+CHECK: Ensures values meet a condition (e.g., age > 18).
+
+
+
+---
+
+5. DELETE vs TRUNCATE vs DROP
+
+DELETE: Deletes rows (can be filtered); logged; slower.
+
+TRUNCATE: Deletes all rows; faster; cannot be rolled back in some DBs.
+
+DROP: Removes the table and its structure.
+
+
+
+---
+
+6. What is normalization? Explain normal forms.
+
+Normalization organizes data to reduce redundancy.
+
+1NF: Atomic values.
+
+2NF: 1NF + no partial dependency.
+
+3NF: 2NF + no transitive dependency.
+
+BCNF: Stricter 3NF.
+
+
+
+---
+
+7. What is denormalization and when is it useful?
+
+Combining normalized tables to improve read performance at the cost of redundancy. Useful in OLAP and reporting.
+
+
+---
+
+8. Difference between CHAR and VARCHAR
+
+CHAR(n): Fixed length, padded with spaces.
+
+VARCHAR(n): Variable length, space-efficient.
+
+
+
+---
+
+9. What are ACID properties?
+
+Atomicity: All or nothing.
+
+Consistency: Valid state transition.
+
+Isolation: Transactions don't interfere.
+
+Durability: Changes persist after commit.
+
+
+
+---
+
+10. JOIN Types
+
+INNER JOIN: Matching rows from both tables.
+
+LEFT JOIN: All from left + matching right.
+
+RIGHT JOIN: All from right + matching left.
+
+FULL JOIN: All rows from both, with NULLs where no match.
+
+
+
+---
+
+11. Second highest salary
+
+SELECT MAX(salary) 
+FROM employees 
+WHERE salary < (SELECT MAX(salary) FROM employees);
+
+
+---
+
+12. Department-wise average salary
+
+SELECT department_id, AVG(salary) 
+FROM employees 
+GROUP BY department_id;
+
+
+---
+
+13. Retrieve duplicate records
+
+SELECT name, COUNT(*) 
+FROM employees 
+GROUP BY name 
+HAVING COUNT(*) > 1;
+
+
+---
+
+14. Update column with 10% tax
+
+UPDATE products 
+SET price = price * 1.10;
+
+
+---
+
+15. Delete duplicate rows
+
+Using ROW_NUMBER():
+
+DELETE FROM (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY name ORDER BY id) AS rn
+  FROM employees
+) t
+WHERE t.rn > 1;
+
+
+---
+
+16. Customers with >5 orders
+
+SELECT customer_id 
+FROM orders 
+GROUP BY customer_id 
+HAVING COUNT(*) > 5;
+
+
+---
+
+17. Join 3+ tables
+
+SELECT o.id, c.name, p.name 
+FROM orders o
+JOIN customers c ON o.customer_id = c.id
+JOIN products p ON o.product_id = p.id;
+
+
+---
+
+18. Subquery vs JOIN
+
+Subquery: Query within a query.
+
+JOIN: Combines rows from tables.
+Use JOINs for performance and subqueries for nesting logic.
+
+
+
+---
+
+19. Correlated subquery
+
+Depends on outer query:
+
+SELECT name 
+FROM employees e 
+WHERE salary > (SELECT AVG(salary) FROM employees WHERE department = e.department);
+
+
+---
+
+20. Filter data by date range
+
+SELECT * FROM orders 
+WHERE order_date BETWEEN '2024-01-01' AND '2024-12-31';
+
+
+---
+
+21. WINDOW FUNCTIONS
+
+ROW_NUMBER()
+
+RANK()
+
+DENSE_RANK()
+
+LEAD(), LAG()
+
+NTILE()
+
+
+
+---
+
+22. RANK(), DENSE_RANK(), ROW_NUMBER()
+
+ROW_NUMBER(): Unique sequence
+
+RANK(): Gaps on ties
+
+DENSE_RANK(): No gaps on ties
+
+
+
+---
+
+23. CTE vs Subquery
+
+CTE (Common Table Expression) improves readability and reuse.
+
+WITH avg_salary AS (
+  SELECT department_id, AVG(salary) AS avg_sal
+  FROM employees
+  GROUP BY department_id
+)
+SELECT * FROM avg_salary WHERE avg_sal > 50000;
+
+
+---
+
+24. Stored Procedures
+
+Predefined SQL code block, reusable and efficient.
+Used for encapsulating business logic and performance tuning.
+
+
+---
+
+25. Trigger Example
+
+CREATE TRIGGER update_timestamp 
+BEFORE UPDATE ON employees 
+FOR EACH ROW 
+SET NEW.updated_at = NOW();
+
+Used to automate tasks like audit logging.
+
+
+---
+
+26. VIEW Pros & Cons
+
+Pros: Simplifies complex queries, improves security.
+
+Cons: Slower on large data, can't always update directly.
+
+
+
+---
+
+27. Indexes
+
+Improve SELECT performance by enabling faster lookups.
+Too many indexes slow down INSERT/UPDATE.
+
+
+---
+
+28. Materialized View
+
+Stored result of a query. Can be refreshed.
+Used when data doesn't change frequently.
+
+
+---
+
+29. Transactions
+
+COMMIT: Save changes
+
+ROLLBACK: Undo changes
+
+SAVEPOINT: Rollback to a point
+
+
+
+---
+
+30. Aggregate Functions
+
+SUM(), AVG(), MAX(), MIN(), COUNT()
+
+
+SELECT AVG(salary) FROM employees;
+
+
+---
+
+31. Optimizing Slow SQL
+
+Use indexes
+
+Avoid SELECT *
+
+Use proper JOINs and filters
+
+Analyze with EXPLAIN
+
+
+
+---
+
+32. EXPLAIN PLAN
+
+Shows how a query will run (join type, index usage, cost). Used for optimization.
+
+
+---
+
+33. Indexing & DML Performance
+
+INSERT/UPDATE/DELETE slow down with many indexes due to maintenance. Balance read vs write needs.
+
+
+
+---
+
+34. Composite Index
+
+Index on multiple columns. Used when filtering on multiple fields:
+
+CREATE INDEX idx_name ON employees(department, salary);
+
+
+---
+
+35. Normalization Overhead
+
+Too many joins hurt performance.
+Use denormalization or materialized views to optimize.
+
+
+---
+
+36. Avoiding Cartesian Products
+
+Ensure all JOINs have ON conditions.
+
+-- Bad
+SELECT * FROM a, b;
+
+-- Good
+SELECT * FROM a JOIN b ON a.id = b.a_id;
+
+
+---
+
+37. Partitioning
+
+Divides table into smaller chunks (by range, hash, etc). Improves manageability and performance on large datasets.
+
+
+---
+
+38. Deadlock & Prevention
+
+Occurs when two transactions wait for each other.
+Prevent with: ordered updates, short transactions, lock timeouts.
+
+
+---
+
+39. Clustered vs Non-clustered Index
+
+Clustered: Stores data physically in index order (1 per table).
+
+Non-clustered: Separate from data, uses pointers.
+
+
+
+---
+
+40. Monitoring Tools
+
+EXPLAIN, ANALYZE, pg_stat_statements (Postgres)
+
+MySQL Performance Schema
+
+New Relic, Datadog, Slow Query Logs
+
+
+
+---
+
+41. Student-Course Grading Schema
+
+Tables: Students, Courses, Enrollments
+Enrollments: FK to student & course, + grade
+
+
+---
+
+42. Attendance Storage
+
+Store in table attendance(employee_id, date, status)
+Index on employee_id, date
+
+
+---
+
+43. Library System: Overdue & Fines
+
+Track borrow date, due date, return date
+Query overdue: WHERE return_date IS NULL AND due_date < CURRENT_DATE
+Calculate fines per day late.
+
+
+---
+
+44. Missing Production Records
+
+Restore from backups
+
+Use transaction logs
+
+Communicate with affected users
+
+Fix the root cause (bug, network)
+
+
+
+---
+
+45. Role-based Access
+
+Use user roles and views:
+
+GRANT SELECT ON view_sensitive_data TO hr_user;
+
+
+---
+
+46. Cleaning Dirty CSV
+
+Load to staging table
+
+Validate data using constraints
+
+Use UPDATE, CASE, TRIM(), REGEXP to clean
+
+
+
+---
+
+47. Monthly Retention
+
+SELECT 
+  user_id, 
+  MIN(DATE_TRUNC('month', login_date)) AS signup_month, 
+  DATE_TRUNC('month', login_date) AS login_month 
+FROM logins 
+GROUP BY user_id, login_month;
+
+Then pivot for retention cohorts.
+
+
+---
+
+48. Database Security
+
+Use encryption (at rest/in transit)
+
+Limit access (principle of least privilege)
+
+Audit logs
+
+Regular patching
+
+
+
+---
+
+49. Backup & Restore Plan
+
+Daily full backups
+
+Hourly incremental/differential backups
+
+Test restores regularly
+
+Automate with cron/scripts or DB tools
+
+
+
+---
+
+50. SQL Best Practices
+
+Use parameterized queries
+
+Avoid SELECT *
+
+Use indexes wisely
+
+Normalize appropriately
+
+Use transactions
+
+Document complex logic
+
+Use CTEs/views for readability
